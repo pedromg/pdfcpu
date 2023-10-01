@@ -129,7 +129,16 @@ func validateDocInfoDictEntry(xRefTable *model.XRefTable, k string, v types.Obje
 	// date, required if PieceInfo is present in document catalog.
 	case "ModDate":
 		hasModDate = true
+		hasPieceInfo, _ := xRefTable.CatalogHasPieceInfo()
+
 		xRefTable.ModDate, err = validateInfoDictDate(xRefTable, v)
+
+		if err != nil && !hasPieceInfo && xRefTable.ValidationMode == model.ValidationRelaxed {
+			if log.ValidateEnabled() {
+				log.Validate.Println("*** ignoring ModDate validation errors (relaxed mode; no PieceInfo detected) ***")
+			}
+			err = nil
+		}
 
 	// name, optional, since V1.3
 	case "Trapped":
